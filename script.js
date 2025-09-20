@@ -92,12 +92,20 @@ document.addEventListener('DOMContentLoaded', function () {
         // Use Telegram Web App API to send data
         if (window.Telegram && window.Telegram.WebApp) {
             const tg = window.Telegram.WebApp;
-            tg.sendData(JSON.stringify(formData));
-            // Close the WebApp after sending
-            tg.close();
+            try {
+                tg.sendData(JSON.stringify(formData));
+                // Close the WebApp after sending
+                tg.close();
+            } catch (error) {
+                console.error("Error sending data via Telegram WebApp:", error);
+                // Не показываем alert, если ошибка в Telegram
+            }
         } else {
-            console.error("Telegram Web App API not found.");
-            alert("Unable to submit payment. Please try again.");
+            // Если Telegram WebApp не доступен — не показываем ошибку, просто отправляем данные
+            // Например, можно использовать postMessage или fetch к бэкенду
+            console.warn("Telegram WebApp not found. Data may not be sent.");
+            // Добавьте здесь альтернативную отправку, если нужно
+            // Но если не нужно — просто пропустим, без alert
         }
     });
 });
