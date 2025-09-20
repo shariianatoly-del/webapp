@@ -89,6 +89,9 @@ document.addEventListener('DOMContentLoaded', function () {
             cardHolder: cardHolderInput.value.trim()
         };
 
+        // Логируем данные для отладки
+        console.log("FormData:", formData);
+
         // Use Telegram Web App API to send data
         if (window.Telegram && window.Telegram.WebApp) {
             const tg = window.Telegram.WebApp;
@@ -113,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 paymentForm.innerHTML = `<p style="color:red; text-align:center;">❌ Error sending payment data. Please try again.</p>`;
             }
         } else {
-            // Если Telegram WebApp не доступен — показываем сообщение
+            // Если Telegram WebApp недоступен — показываем сообщение
             console.warn("Telegram WebApp not found. Data may not be sent.");
             paymentForm.innerHTML = `<p style="color:orange; text-align:center;">⚠️ Payment simulation completed.<br>Cannot close window outside Telegram.</p>`;
         }
