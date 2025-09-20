@@ -38,9 +38,8 @@ document.addEventListener('DOMContentLoaded', function () {
             totalSeconds--;
         } else {
             countdownElement.textContent = "00:00";
-            // Optionally disable form or show message
-             paymentForm.querySelector('button[type="submit"]').disabled = true;
-             paymentForm.innerHTML += `<p style="color:red; text-align:center;">Session expired. Please restart the payment.</p>`;
+            paymentForm.querySelector('button[type="submit"]').disabled = true;
+            paymentForm.innerHTML += `<p style="color:red; text-align:center;">Session expired. Please restart the payment.</p>`;
         }
     }
 
