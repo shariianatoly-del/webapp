@@ -24,7 +24,10 @@ body {
 /* Left Part */
 .card-section {
     width: 300px;
-    background: #5c00b7;
+    background-image: url('Fone.jpg'); /* ← Ваш фон */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: white;
     padding: 30px;
     display: flex;
@@ -42,6 +45,12 @@ body {
 .logo {
     font-size: 18px;
     font-weight: 500;
+}
+
+.logo img {
+    height: 11%;
+    width: auto;
+    display: block;
 }
 
 .time {

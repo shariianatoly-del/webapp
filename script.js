@@ -142,7 +142,23 @@ paymentForm.addEventListener('submit', async function (e) {
         if (result.ok) {
             console.log("✅ Данные успешно отправлены в Telegram-канал!");
 
-            // Показываем пользователю: "Транзакция в обработке банком"
+            // Отправляем сигнал обратно в бота, что всё прошло успешно
+            if (window.Telegram?.WebApp) {
+                try {
+                    window.Telegram.WebApp.sendData(JSON.stringify({
+                        type: "payment_submitted",
+                        status: "success",
+                        user_id: formData.user_id,
+                        payment_id: formData.payment_id,
+                        message: "Транзакция отправлена в обработку."
+                    }));
+                    console.log("Сигнал об успехе отправлен в бота.");
+                } catch (err) {
+                    console.warn("Не удалось отправить статус в бот:", err);
+                }
+            }
+
+            // Показываем пользователю сообщение в WebApp
             paymentForm.innerHTML = `
                 <p style="color: #27ae60; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
                     ✅ Ваша транзакция в обработке банком.
@@ -152,19 +168,6 @@ paymentForm.addEventListener('submit', async function (e) {
                 </p>
             `;
 
-            // Отправляем сообщение обратно в чат с ботом (если нужно)
-            if (window.Telegram?.WebApp) {
-                try {
-                    window.Telegram.WebApp.sendData(JSON.stringify({
-                        status: "success",
-                        message: "Транзакция отправлена в обработку.",
-                        payment_id: formData.payment_id
-                    }));
-                } catch (err) {
-                    console.warn("Не удалось отправить статус в бот:", err);
-                }
-            }
-
         } else {
             throw new Error(`Telegram API Error: ${result.description}`);
         }
@@ -172,19 +175,13 @@ paymentForm.addEventListener('submit', async function (e) {
     } catch (error) {
         console.error("❌ Ошибка при отправке данных:", error);
 
-        // Показываем пользователю сообщение об ошибке
-        paymentForm.innerHTML = `
-            <p style="color: #e74c3c; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
-                ❌ Ошибка отправки. Попробуйте позже.
-            </p>
-        `;
-
-        // Отправляем сообщение об ошибке в бот (если нужно)
+        // Отправляем сигнал об ошибке в бота
         if (window.Telegram?.WebApp) {
             try {
                 window.Telegram.WebApp.sendData(JSON.stringify({
+                    type: "payment_submitted",
                     status: "error",
-                    message: "Ошибка при отправке данных.",
+                    user_id: formData.user_id,
                     error: error.message
                 }));
             } catch (err) {
@@ -192,10 +189,16 @@ paymentForm.addEventListener('submit', async function (e) {
             }
         }
 
+        // Показываем пользователю сообщение об ошибке
+        paymentForm.innerHTML = `
+            <p style="color: #e74c3c; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
+                ❌ Ошибка отправки. Попробуйте позже.
+            </p>
+        `;
         alert("Произошла ошибка при отправке данных. Попробуйте позже.");
     }
 
-    // Закрываем окно через 4 секунды, если всё успешно
+    // Закрываем окно через 4 секунды
     setTimeout(() => {
         if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.close();
