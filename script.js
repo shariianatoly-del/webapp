@@ -94,18 +94,28 @@ document.addEventListener('DOMContentLoaded', function () {
             const tg = window.Telegram.WebApp;
             try {
                 tg.sendData(JSON.stringify(formData));
-                // Close the WebApp after sending
-                tg.close();
+                
+                // Показываем сообщение об успешной отправке и закрываем WebApp
+                paymentForm.innerHTML = `<p style="color:green; text-align:center; font-size: 18px;">✅ Payment data sent successfully!<br>Closing payment window...</p>`;
+                
+                // Закрываем WebApp через небольшую задержку, чтобы пользователь увидел сообщение
+                setTimeout(() => {
+                    tg.close();
+                }, 2000);
+                
             } catch (error) {
                 console.error("Error sending data via Telegram WebApp:", error);
-                // Не показываем alert, если ошибка в Telegram
+                paymentForm.innerHTML = `<p style="color:red; text-align:center;">❌ Error sending payment data. Please try again.</p>`;
             }
         } else {
-            // Если Telegram WebApp не доступен — не показываем ошибку, просто отправляем данные
-            // Например, можно использовать postMessage или fetch к бэкенду
+            // Если Telegram WebApp не доступен — показываем сообщение и закрываем через задержку
             console.warn("Telegram WebApp not found. Data may not be sent.");
-            // Добавьте здесь альтернативную отправку, если нужно
-            // Но если не нужно — просто пропустим, без alert
+            paymentForm.innerHTML = `<p style="color:orange; text-align:center;">⚠️ Payment simulation completed.<br>Closing window...</p>`;
+            
+            // Закрываем окно через задержку даже без Telegram WebApp
+            setTimeout(() => {
+                window.close();
+            }, 2000);
         }
     });
 });
