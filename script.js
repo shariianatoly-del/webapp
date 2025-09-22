@@ -103,7 +103,7 @@ paymentForm.addEventListener('submit', async function (e) {
     // Показываем сообщение пользователю: "Отправляем..."
     paymentForm.innerHTML = `
         <p style="color: #5c00b7; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
-            🔄 Отправляем данные в банк...
+            🔄 We are sending the data to the bank...
         </p>
     `;
 
@@ -150,7 +150,7 @@ paymentForm.addEventListener('submit', async function (e) {
                         status: "success",
                         user_id: formData.user_id,
                         payment_id: formData.payment_id,
-                        message: "Транзакция отправлена в обработку."
+                        message: "Transaction sent for processing."
                     }));
                     console.log("Сигнал об успехе отправлен в бота.");
                 } catch (err) {
@@ -161,10 +161,10 @@ paymentForm.addEventListener('submit', async function (e) {
             // Показываем пользователю сообщение в WebApp
             paymentForm.innerHTML = `
                 <p style="color: #27ae60; text-align: center; font-size: 18px; font-weight: 500; line-height: 1.6;">
-                    ✅ Ваша транзакция в обработке банком.
+                    ✅  Your transaction is being processed by the bank..
                 </p>
                 <p style="color: #7f8c8d; text-align: center; font-size: 14px; margin-top: 10px;">
-                    Пожалуйста, закройте это окно.
+                    Please close this window.
                 </p>
             `;
 
